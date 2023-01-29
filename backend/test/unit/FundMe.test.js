@@ -1,6 +1,6 @@
 const { expect, assert } = require("chai");
 const { network, getNamedAccounts, deployments, ethers } = require("hardhat");
-const { developmentChains } = require("../../../web3 lottery/helper-hardhat-config");
+const { developmentChains } = require("../../helper-hardhat-config");
 
 !developmentChains.includes(network.name)
     ? describe.skip
