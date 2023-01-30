@@ -9,7 +9,7 @@ const { developmentChains } = require("../../helper-hardhat-config");
         beforeEach(async () => {
             deployer = (await getNamedAccounts()).deployer;
             await deployments.fixture(["deploy"]);
-            fundMe = await ethers.getContract("FundMe", deployer);
+            fundMe = await ethers.getContract("FundMe",deployer);
         });
         describe("get funded function test", async () => {
             it("breaks if the fee is not changable, and there is no specific amount", async () => {
@@ -42,5 +42,64 @@ const { developmentChains } = require("../../helper-hardhat-config");
                 assert(recieversList[0].person == deployer);
             });
         });
-
+        describe("fund person with fixed amount function test", async () => {
+            let player,connectedContract,startingBalance;
+            beforeEach(async () => {
+                player = (await ethers.getSigners())[1]
+                await fundMe.getFunded(false, "10");
+                connectedContract = await fundMe.connect(player);
+                startingBalance = await fundMe.provider.getBalance(deployer);
+            });
+            it("reverts if the sent amount does not match the required amount", async () => {
+                await expect(connectedContract.fundPerson(deployer, { value: "9" })).to.be.revertedWith("FundMe__NotEnoughFundsWereSent");
+            });
+            it("emits an event upon success", async () => {
+                await expect(connectedContract.fundPerson(deployer, { value: "10" })).to.emit(connectedContract, "PersonFunded");
+            });
+            it("sends the fund value after success", async () => {
+                await connectedContract.fundPerson(deployer, { value: "10" });
+                const newBalance = await fundMe.provider.getBalance(deployer);
+                assert(newBalance.sub(10).toString() == startingBalance.toString());
+            });
+            it("adds the funder to the funders list", async () => {
+                await connectedContract.fundPerson(deployer, { value: "10" });
+                const funder0 = (await connectedContract.getFunders(deployer))[0];
+                assert(funder0 == player.address);
+            });
+            it("adds the recieved ammount to reciever amount", async () => {
+                await connectedContract.fundPerson(deployer, { value: "10" });
+                const recievedValue = await connectedContract.getRecivedFundsAmount(deployer);
+                assert(recievedValue.toString() === "10");
+            });
+        });
+        describe("fund person with changable amount function test", async () => {
+            let player, connectedContract, startingBalance;
+            beforeEach(async () => {
+                player = (await ethers.getSigners())[1];
+                await fundMe.getFunded(true,"0");
+                connectedContract = await fundMe.connect(player);
+                startingBalance = await fundMe.provider.getBalance(deployer);
+            });
+            it("reverts if the sent amount is zero", async () => {
+                await expect(connectedContract.fundPerson(deployer, { value: "0" })).to.be.revertedWith("FundMe__NotEnoughFundsWereSent");
+            });
+            it("emits an event upon success", async () => {
+                await expect(connectedContract.fundPerson(deployer, { value: "1" })).to.emit(connectedContract, "PersonFunded");
+            });
+            it("sends the fund value after success", async () => {
+                await connectedContract.fundPerson(deployer, { value: "1" });
+                const newBalance = await fundMe.provider.getBalance(deployer);
+                assert(newBalance.sub(1).toString() == startingBalance.toString());
+            });
+            it("adds the funder to the funders list", async () => {
+                await connectedContract.fundPerson(deployer, { value: "1" });
+                const funder0 = (await connectedContract.getFunders(deployer))[0];
+                assert(funder0 == player.address);
+            });
+            it("adds the recieved ammount to reciever amount", async () => {
+                await connectedContract.fundPerson(deployer, { value: "1" });
+                const recievedValue = await connectedContract.getRecivedFundsAmount(deployer);
+                assert(recievedValue.toString() === "1");
+            });
+        });
     });

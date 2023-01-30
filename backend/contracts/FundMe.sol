@@ -22,6 +22,7 @@ contract FundMe {
 
     /* Events */
     event FundRaiserAdded();
+    event PersonFunded();
 
     /* State variables */
     Reciever[] private recievers;
@@ -71,6 +72,7 @@ contract FundMe {
         payable(recieverAddress).transfer(msg.value);
         reciever.funders.push(msg.sender);
         reciever.amountFunded += recievedValue;
+        emit PersonFunded();
     }
 
     /* Getters */
