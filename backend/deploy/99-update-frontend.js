@@ -1,8 +1,8 @@
 const { ethers, network } = require("hardhat");
 const fs = require("fs");
 
-const FRONTEND_ABI = "../frontend/constants/abi.json";
-const FRONTEND_ADDRESSES = "../frontend/constants/contractAddress.json";
+const FRONTEND_ABI = "../front-end/constants/abi.json";
+const FRONTEND_ADDRESSES = "../front-end/constants/contractAddress.json";
 
 module.exports = async () => {
     console.log("updating front end ....");

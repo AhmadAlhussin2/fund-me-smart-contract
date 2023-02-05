@@ -1,4 +1,5 @@
 import '@/styles/globals.css';
+import "../styles/StartFundRaise.css";
 import { MoralisProvider } from 'react-moralis';
 import { NotificationProvider } from 'web3uikit';
 
